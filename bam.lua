@@ -359,8 +359,10 @@ function BuildServer(settings, family, platform)
 	local server = Compile(settings, Collect("src/engine/server/*.cpp"))
 	
 	local game_server = Compile(settings, CollectRecursive("src/game/server/*.cpp"), SharedServerFiles())
+    
+    local map_generator = Compile(settings, CollectRecursive("src/game/mapgenerator/*.cpp"))
 	
-	return Link(settings, "teeworlds_srv", libs["zlib"], libs["md5"], server, game_server)
+	return Link(settings, "teeworlds_srv", libs["zlib"], libs["md5"], libs["json"], server, game_server, map_generator)
 end
 
 function BuildTools(settings)
