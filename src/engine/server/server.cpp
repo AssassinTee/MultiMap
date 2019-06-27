@@ -1327,7 +1327,7 @@ int CServer::LoadMap(const char *pMapName)
 	str_format(aBufMultiMap, sizeof(aBufMultiMap), "Loading Map with ID '%d' and name '%s'", MapID, pMapName);
 	Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "multimap", aBufMultiMap);
 
-	if(!m_vpMap[MapID]->Load(aBuf, Kernel(), Storage()))
+	if(!m_vpMap[MapID]->Load(aBuf, Storage()))
 		return 0;
 
 	// stop recording when we change map
