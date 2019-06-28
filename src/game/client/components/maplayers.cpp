@@ -16,6 +16,7 @@
 
 #include <game/client/components/camera.h>
 #include <game/client/components/mapimages.h>
+#include <engine/shared/map.h>
 
 
 #include "maplayers.h"
@@ -77,7 +78,7 @@ void CMapLayers::OnInit()
 	if(m_Type == TYPE_BACKGROUND)
 	{
 		m_pMenuLayers = new CLayers;
-		m_pMenuMap = CreateEngineMap();
+		m_pMenuMap = new CMap;//TODO memory leak!//CreateEngineMap();
 
 		LoadBackgroundMap();
 	}
