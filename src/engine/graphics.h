@@ -200,7 +200,7 @@ class IEngineGraphics : public IGraphics
 {
 	MACRO_INTERFACE("enginegraphics", 0)
 public:
-	virtual int Init() = 0;
+	virtual int Init(bool OpenWindow=true) = 0;
 	virtual void Shutdown() = 0;
 
 	virtual bool Fullscreen(bool State) = 0;
