@@ -198,12 +198,13 @@ function GenerateLinuxSettings(settings, conf, arch, compiler)
 	BuildGameCommon(settings)
 
 	-- Server
+    settings.link.libs:Add("X11")
+	settings.link.libs:Add("GL")
+	settings.link.libs:Add("GLU")
+    config.sdl:Apply(settings)
 	BuildServer(settings)
 
 	-- Client
-	settings.link.libs:Add("X11")
-	settings.link.libs:Add("GL")
-	settings.link.libs:Add("GLU")
 	BuildClient(settings)
 
 	-- Content
@@ -356,13 +357,16 @@ function BuildClient(settings, family, platform)
 end
 
 function BuildServer(settings, family, platform)
+    config.sdl:Apply(settings)
+    config.freetype:Apply(settings)
+    
 	local server = Compile(settings, Collect("src/engine/server/*.cpp"))
 	
 	local game_server = Compile(settings, CollectRecursive("src/game/server/*.cpp"), SharedServerFiles())
     
     local map_generator = Compile(settings, CollectRecursive("src/game/mapgenerator/*.cpp"))
 	
-	return Link(settings, "teeworlds_srv", libs["zlib"], libs["md5"], libs["json"], server, game_server, map_generator)
+	return Link(settings, "teeworlds_srv", libs["zlib"], libs["md5"], libs["json"], libs["png"], server, game_server, map_generator)
 end
 
 function BuildTools(settings)

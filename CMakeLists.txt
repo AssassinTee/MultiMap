@@ -1193,6 +1193,8 @@ set_src(ENGINE_INTERFACE GLOB src/engine
   textrender.h
 )
 set_src(ENGINE_SHARED GLOB src/engine/shared
+  backend_sdl.cpp
+  backend_sdl.h
   compression.cpp
   compression.h
   config.cpp
@@ -1209,6 +1211,8 @@ set_src(ENGINE_SHARED GLOB src/engine/shared
   engine.cpp
   filecollection.cpp
   filecollection.h
+  graphics_threaded.cpp
+  graphics_threaded.h
   huffman.cpp
   huffman.h
   jobs.cpp
@@ -1217,6 +1221,7 @@ set_src(ENGINE_SHARED GLOB src/engine/shared
   linereader.cpp
   linereader.h
   map.cpp
+  map.h
   mapchecker.cpp
   mapchecker.h
   masterserver.cpp
@@ -1280,14 +1285,10 @@ list(APPEND TARGETS_OWN engine-shared game-shared)
 if(CLIENT)
   # Sources
   set_src(ENGINE_CLIENT GLOB src/engine/client
-    backend_sdl.cpp
-    backend_sdl.h
     client.cpp
     client.h
     friends.cpp
     friends.h
-    graphics_threaded.cpp
-    graphics_threaded.h
     input.cpp
     input.h
     keynames.h
@@ -1511,30 +1512,50 @@ set_src(GAME_SERVER GLOB_RECURSE src/game/server
   player.cpp
   player.h
 )
+set_src(GAME_MAPGEN GLOB src/game/mapgenerator
+  auto_map2.cpp
+  auto_map2.h
+  generator.cpp
+  generator.h
+)
 set(GAME_GENERATED_SERVER
   src/generated/server_data.cpp
   src/generated/server_data.h
 )
-set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${GAME_GENERATED_SERVER})
+set(SERVER_SRC ${ENGINE_SERVER} ${GAME_SERVER} ${GAME_GENERATED_SERVER} ${GAME_GENERATED_SERVER} ${GAME_MAPGEN})
 if(TARGET_OS STREQUAL "windows")
   set(SERVER_ICON "other/icons/${SERVER_EXECUTABLE}.rc")
 else()
   set(SERVER_ICON)
 endif()
 
+# Dependencies
+set(DEPS_SERVER ${DEPS} ${PNGLITE_DEP})
+
 # Libraries
-set(LIBS_SERVER ${LIBS})
+set(LIBS_SERVER 
+  ${LIBS}
+  ${FREETYPE_LIBRARIES}
+  ${PNGLITE_LIBRARIES}
+  ${SDL2_LIBRARIES})
 
 # Target
 set(TARGET_SERVER ${SERVER_EXECUTABLE})
 add_executable(${TARGET_SERVER}
-  ${DEPS}
+  ${DEPS_SERVER}
   ${SERVER_SRC}
   ${SERVER_ICON}
   $<TARGET_OBJECTS:engine-shared>
   $<TARGET_OBJECTS:game-shared>
 )
 target_link_libraries(${TARGET_SERVER} ${LIBS_SERVER})
+
+target_include_directories(${TARGET_SERVER} PRIVATE
+  ${FREETYPE_INCLUDE_DIRS}
+  ${PNGLITE_INCLUDE_DIRS}
+  ${SDL2_INCLUDE_DIRS}
+)
+
 list(APPEND TARGETS_OWN ${TARGET_SERVER})
 list(APPEND TARGETS_LINK ${TARGET_SERVER})
 
@@ -1841,6 +1862,11 @@ if(CLIENT AND (DMGTOOLS_FOUND OR HDIUTIL))
     COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/other/icons/${TARGET_SERVER}.icns ${DMG_TMPDIR}/${TARGET_SERVER}.app/Contents/Resources/
     COMMAND ${CMAKE_COMMAND} -E copy bundle/server/Info.plist ${PROJECT_SOURCE_DIR}/other/bundle/server/PkgInfo ${DMG_TMPDIR}/${TARGET_SERVER}.app/Contents/
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${TARGET_SERVER}> $<TARGET_FILE:${TARGET_SERVER_LAUNCHER}> ${DMG_TMPDIR}/${TARGET_SERVER}.app/Contents/MacOS/
+    
+    COMMAND ${CMAKE_COMMAND} -E copy ${FREETYPE_LIBRARY} ${DMG_TMPDIR}/${TARGET_SERVER}.app/Contents/Frameworks/
+    COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/darwin_change_dylib.py change --tools ${CMAKE_INSTALL_NAME_TOOL} ${CMAKE_OTOOL} ${DMG_TMPDIR}/${TARGET_SERVER}.app/Contents/MacOS/${TARGET_SERVER} SDL2 @executable_path/../Frameworks/SDL2.framework/SDL2
+    COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/darwin_change_dylib.py change --tools ${CMAKE_INSTALL_NAME_TOOL} ${CMAKE_OTOOL} ${DMG_TMPDIR}/${TARGET_SERVER}.app/Contents/MacOS/${TARGET_SERVER} libfreetype @executable_path/../Frameworks/libfreetype.6.dylib
+
 
     # DMG
     COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/dmg.py create ${DMG_PARAMS} ${CPACK_PACKAGE_FILE_NAME}.dmg ${CPACK_PACKAGE_FILE_NAME} ${DMG_TMPDIR}
