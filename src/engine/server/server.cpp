@@ -26,6 +26,8 @@
 #include <engine/shared/protocol.h>
 #include <engine/shared/snapshot.h>
 
+#include <game/mapgenerator/generator.h>
+
 #include <mastersrv/mastersrv.h>
 
 #include "register.h"
@@ -1570,6 +1572,22 @@ void CServer::ChangeClientMap(int ClientID)
 	GameServer()->OnInitMap(m_aClients[ClientID].m_NextMapID);
 }
 
+void CServer::GenerateMap(const char* filename)
+{
+	CMapGenerator generator;
+	char aBuf[256];
+	if(generator.GenerateMap(Storage(), Kernel()->RequestInterface<IGraphics>(), Console(), filename))
+	{
+		str_format(aBuf, sizeof(aBuf), "Map '%s' generated successfully!", filename);
+		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mapgen", aBuf);
+	}
+	else
+	{
+		str_format(aBuf, sizeof(aBuf), "Map '%s' NOT generated!", filename);
+		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mapgen", aBuf);
+	}
+}
+
 int CServer::MapListEntryCallback(const char *pFilename, int IsDir, int DirType, void *pUser)
 {
 	CSubdirCallbackUserdata *pUserdata = (CSubdirCallbackUserdata *)pUser;
@@ -1781,6 +1799,12 @@ void CServer::ConLogout(IConsole::IResult *pResult, void *pUser)
 	}
 }
 
+void CServer::ConGenerateMap(IConsole::IResult *pResult, void *pUser)
+{
+	CServer *pServer = (CServer *)pUser;
+	pServer->GenerateMap(pResult->GetString(0));
+}
+
 void CServer::ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
 {
 	pfnCallback(pResult, pCallbackUserData);
@@ -1864,6 +1888,7 @@ void CServer::RegisterCommands()
 
 	Console()->Register("set_map_by_mapid", "i?i", CFGFLAG_SERVER, ConSetMapByID, this, "Set <mapid> [<playerid>]");
 	Console()->Register("set_map_by_mapname", "s?i", CFGFLAG_SERVER, ConSetMapByName, this, "Set <mapname> [<playerid>]");
+	Console()->Register("gen_map", "s", CFGFLAG_SERVER, ConGenerateMap, this, "Generate <mapname> TODO: enter some metadata");
 
 	Console()->Chain("sv_name", ConchainSpecialInfoupdate, this);
 	Console()->Chain("password", ConchainSpecialInfoupdate, this);
@@ -1945,6 +1970,7 @@ int main(int argc, const char **argv) // ignore_convention
 	IEngineMasterServer *pEngineMasterServer = CreateEngineMasterServer();
 	IStorage *pStorage = CreateStorage("Teeworlds", IStorage::STORAGETYPE_SERVER, argc, argv); // ignore_convention
 	IConfig *pConfig = CreateConfig();
+	IEngineGraphics *pGraphics = CreateEngineGraphicsThreaded();//Do i really need the threaded one here?
 
 	pServer->InitRegister(&pServer->m_NetServer, pEngineMasterServer, pConsole);
 
@@ -1959,6 +1985,8 @@ int main(int argc, const char **argv) // ignore_convention
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pConsole);
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pStorage);
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(pConfig);
+		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IEngineGraphics*>(pGraphics));//register as both
+		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IGraphics*>(pGraphics));
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IEngineMasterServer*>(pEngineMasterServer)); // register as both
 		RegisterFail = RegisterFail || !pKernel->RegisterInterface(static_cast<IMasterServer*>(pEngineMasterServer));
 
@@ -1970,6 +1998,7 @@ int main(int argc, const char **argv) // ignore_convention
 	pConfig->Init(FlagMask);
 	pEngineMasterServer->Init();
 	pEngineMasterServer->Load();
+	pGraphics->Init(false);
 
 	if(!UseDefaultConfig)
 	{
@@ -2005,6 +2034,7 @@ int main(int argc, const char **argv) // ignore_convention
 	delete pEngineMasterServer;
 	delete pStorage;
 	delete pConfig;
+	delete pGraphics;
 
 	return 0;
 }
