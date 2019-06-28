@@ -81,6 +81,9 @@ private:
 	void PlaceGameItems();
 	void PlaceSpawns();
 
+	//More corrections
+	void CleanLayer(CEditorMap2::CLayer* layer, int Solid);
+
 	CEditorMap2* m_pEditor;
 	IConsole* m_pConsole;
 	IAutoMapper* m_pAutoMapperTiles;

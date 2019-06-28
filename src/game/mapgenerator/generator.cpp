@@ -81,6 +81,11 @@ void CMapGenerator::DoBackground()
 		PunchHoles(grassLayer, r, 10);
 	}
 
+	//Get Rid of useless blocks
+	//Do it twice!!!
+	CleanLayer(grassLayer, 13);
+	CleanLayer(grassLayer, 13);
+
 	//Automap the F out of it
 	RECTi Area;
 	Area.h = grassLayer->m_Height;
@@ -99,7 +104,7 @@ void CMapGenerator::DoForeground()
 	grassLayer->m_ImageID = GRASS_MAIN;
 
 	//Fill all with grasstiles
-	FillLayer(grassLayer, GenerateTile(1));
+	FillLayer(grassLayer, GenerateTile(Tile::SOLID));
 
 	//Do Some Points of interest
 	for(int r = 15; r >= 7; --r)
@@ -117,6 +122,11 @@ void CMapGenerator::DoForeground()
 	//Make Minimal spanning tree between POIs
 	ConnectMinimalSpanningTree(grassLayer);
 
+	//Get Rid of useless blocks
+	//Do it twice!!!
+	CleanLayer(grassLayer, Tile::SOLID);
+	CleanLayer(grassLayer, Tile::SOLID);
+
 	//Automap the rest
 	RECTi Area;
 	Area.h = grassLayer->m_Height;
@@ -124,6 +134,8 @@ void CMapGenerator::DoForeground()
 	Area.x = 0;
 	Area.y = 0;
 	m_pAutoMapperTiles->Proceed(grassLayer, AUTOMAP_RULES::GRASS_MAIN::GRASS, Area);
+
+
 }
 
 void CMapGenerator::DoGameLayer()
@@ -153,25 +165,35 @@ void CMapGenerator::DoDoodadsLayer()
 	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[2];
 	str_copy(Group->m_aName, "DoodadsTiles", sizeof(Group->m_aName));
 
-	CEditorMap2::CLayer* doodadsLayer = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[0]]);
-	doodadsLayer->m_ImageID = GRASS_DOODADS;
+	CEditorMap2::CLayer* doodadsLayer1 = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[0]]);
+	CEditorMap2::CLayer* doodadsLayer2 = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[1]]);
+	doodadsLayer1->m_ImageID = GRASS_DOODADS;
+	doodadsLayer2->m_ImageID = GRASS_DOODADS;
 
 	CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
 
 	//Automap
-    ((CDoodadsMapper*)m_pAutoMapperDoodads)->Proceed(doodadsLayer, 1, 50);
+    ((CDoodadsMapper*)m_pAutoMapperDoodads)->Proceed(doodadsLayer1, 1, 50);
+    ((CDoodadsMapper*)m_pAutoMapperDoodads)->Proceed(doodadsLayer2, 0, 50);
 
     //Filter wrong grass
-    for(int y = 1; y < doodadsLayer->m_Height-1; ++y)
+    for(int y = 1; y < doodadsLayer1->m_Height-1; ++y)
     {
-    	for(int x= 1; x < doodadsLayer->m_Width-1; ++x)
+    	for(int x= 1; x < doodadsLayer1->m_Width-1; ++x)
     	{
-    		if(doodadsLayer->m_aTiles[y*doodadsLayer->m_Width+x].m_Index != 0)
+    		if(doodadsLayer1->m_aTiles[y*doodadsLayer1->m_Width+x].m_Index != 0)
     		{
-    			if(gamelayer->m_aTiles[(y+1)*doodadsLayer->m_Width+x+1].m_Index == Tile::AIR)
-    				doodadsLayer->m_aTiles[y*doodadsLayer->m_Width+x] = GenerateTile(16+11, TILEFLAG_VFLIP);
-    			if(gamelayer->m_aTiles[(y+1)*doodadsLayer->m_Width+x-1].m_Index == Tile::AIR)
-    				doodadsLayer->m_aTiles[y*doodadsLayer->m_Width+x].m_Index = 16+11;
+    			if(gamelayer->m_aTiles[(y+1)*doodadsLayer1->m_Width+x+1].m_Index == Tile::AIR)
+    				doodadsLayer1->m_aTiles[y*doodadsLayer1->m_Width+x] = GenerateTile(16+11, TILEFLAG_VFLIP);
+    			if(gamelayer->m_aTiles[(y+1)*doodadsLayer1->m_Width+x-1].m_Index == Tile::AIR)
+    				doodadsLayer1->m_aTiles[y*doodadsLayer1->m_Width+x].m_Index = 16+11;
+			}
+
+			if(doodadsLayer2->m_aTiles[y*doodadsLayer2->m_Width+x].m_Index > 20)
+			{
+				if((gamelayer->m_aTiles[(y+1)*doodadsLayer2->m_Width+x+1].m_Index == Tile::AIR || gamelayer->m_aTiles[(y+1)*doodadsLayer2->m_Width+x-1].m_Index == Tile::AIR)
+					&& (gamelayer->m_aTiles[(y+1)*doodadsLayer2->m_Width+x].m_Index == Tile::SOLID || gamelayer->m_aTiles[(y+1)*doodadsLayer2->m_Width+x].m_Index == Tile::UNHOOK))
+    				doodadsLayer2->m_aTiles[(y+1)*doodadsLayer2->m_Width+x] = GenerateTile(doodadsLayer2->m_aTiles[y*doodadsLayer2->m_Width+x].m_Index, TILEFLAG_HFLIP);
 			}
 		}
     }
@@ -543,7 +565,53 @@ void CMapGenerator::DoBorderCorrection()
 
 	for(int i = 0; i < grassLayer->m_Height; ++i)
 	{
-		gamelayer->m_aTiles[(grassLayer->m_Width)*i] = 							GenerateTile(1);
-		gamelayer->m_aTiles[(grassLayer->m_Width)*i+grassLayer->m_Width-1] = 	GenerateTile(1);
+		grassLayer->m_aTiles[(grassLayer->m_Width)*i] = 						GenerateTile(1);
+		grassLayer->m_aTiles[(grassLayer->m_Width)*i+grassLayer->m_Width-1] = 	GenerateTile(1);
 	}
+}
+
+void CMapGenerator::CleanLayer(CEditorMap2::CLayer* layer, int Solid)
+{
+	// Remove useless blocks
+	const static int sin[8] = {1, 1, 1, 0, -1, -1, -1, 0};
+	const static int cos[8] = {-1, 0, 1, 1, 1, 0, -1, -1};
+	array2<CTile> cpy(layer->m_aTiles);
+	for(int y = 1; y < layer->m_Height-1; ++y)
+	{
+		for(int x = 1; x < layer->m_Width-1; ++x)
+		{
+			int counter = 0;
+			for(int i = 0; i < 8; ++i)
+			{
+				int x1 = x+cos[i];
+				int y1 = y+sin[i];
+				if(layer->m_aTiles[y1*layer->m_Width+x1].m_Index == Solid)
+					counter++;
+			}
+			if(counter < 3)
+			{
+				cpy[y*layer->m_Width+x].m_Index = Tile::AIR;
+				continue;
+			}
+
+			int htopcount = 0;
+			int hbotcount = 0;
+			int vtopcount = 0;
+			int vbotcount = 0;
+			for(int i = -1; i <= 1; ++i)
+			{
+				if(layer->m_aTiles[(y-1)*layer->m_Width+x+i].m_Index == Solid)
+					htopcount++;
+				if(layer->m_aTiles[(y+1)*layer->m_Width+x+i].m_Index == Solid)
+					hbotcount++;
+				if(layer->m_aTiles[(y+i)*layer->m_Width+x+1].m_Index == Solid)
+					vtopcount++;
+				if(layer->m_aTiles[(y+i)*layer->m_Width+x-1].m_Index == Solid)
+					vbotcount++;
+			}
+			if((htopcount == 3 || hbotcount == 3 || vtopcount == 3 || vbotcount == 3) && counter == 3)
+				cpy[y*layer->m_Width+x].m_Index = Tile::AIR;
+		}
+	}
+	layer->m_aTiles = cpy;
 }

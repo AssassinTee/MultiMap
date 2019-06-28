@@ -535,6 +535,10 @@ void CEditorMap2::LoadDefault()
 	/*CLayer& Gamelayer =*/ NewTileLayer(512, 512);
 
 	DoGroup.m_apLayerIDs[DoGroup.m_LayerCount++] = m_aLayers.size()-1;
+
+	/*CLayer& Gamelayer =*/ NewTileLayer(512, 512);
+
+	DoGroup.m_apLayerIDs[DoGroup.m_LayerCount++] = m_aLayers.size()-1;
 	m_aGroups.add(DoGroup);
 
 	//Add gamelayer
