@@ -169,7 +169,7 @@ public:
 
 	int m_TriggeredEvents;
 
-	void Init(CWorldCore *pWorld, CCollision *pCollision, int MapID);
+	void Init(CWorldCore *pWorld, CCollision *pCollision, int MapID=-1);
 	void Reset();
 	void Tick(bool UseInput);
 	void Move();
