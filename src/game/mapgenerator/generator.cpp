@@ -8,8 +8,6 @@ CMapGenerator::CMapGenerator()
 {
 	m_Width = 512;
 	m_Height = 512;
-	AIR = GenerateTile(0);
-	SOLID = GenerateTile(1);
 }
 
 bool CMapGenerator::GenerateMap(IStorage* pStorage, IGraphics* pGraphics, IConsole* pConsole, const char* pFilename)
@@ -42,6 +40,15 @@ bool CMapGenerator::GenerateMap(IStorage* pStorage, IGraphics* pGraphics, IConso
 
 	DoGameLayer();
 
+	str_format(aBuf, sizeof(aBuf), "Starting doodadslayer");
+	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "genmap", aBuf);
+
+	DoDoodadsLayer();
+
+	str_format(aBuf, sizeof(aBuf), "Starting bordercorrection");
+	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "genmap", aBuf);
+
+	DoBorderCorrection();
 
 	str_format(aBuf, sizeof(aBuf), "maps/%s", pFilename);
 	bool ret = m_pEditor->Save(aBuf);
@@ -85,8 +92,7 @@ void CMapGenerator::DoBackground()
 
 void CMapGenerator::DoForeground()
 {
-	m_vPOI.clear();
-	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[3];
+	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[4];
 	str_copy(Group->m_aName, "MainTiles", sizeof(Group->m_aName));
 
 	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[GRASS_MAIN]]);
@@ -98,12 +104,12 @@ void CMapGenerator::DoForeground()
 	//Do Some Points of interest
 	for(int r = 15; r >= 7; --r)
 	{
-		PunchHoles(grassLayer, r, 10);
+		PunchHoles(grassLayer, r, 10, true);
 	}
 
 	for(int w = 20; w >= 10; --w)
 	{
-		PunchRectangles(grassLayer, w, 20-w, 10);
+		PunchRectangles(grassLayer, w, 20-w/2, 10, true);
 	}
 
 	//Add some pregenerated buildings like shops exits, whatever
@@ -123,7 +129,7 @@ void CMapGenerator::DoForeground()
 void CMapGenerator::DoGameLayer()
 {
 	//CEditorMap2::CGroup* GameGroup = &m_pEditor->m_aGroups[2];
-	CEditorMap2::CGroup* ForeGroundGroup = &m_pEditor->m_aGroups[3];
+	CEditorMap2::CGroup* ForeGroundGroup = &m_pEditor->m_aGroups[4];
 	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[ForeGroundGroup->m_apLayerIDs[GRASS_MAIN]]);
 
 	CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
@@ -131,18 +137,50 @@ void CMapGenerator::DoGameLayer()
 	//Make Solid tiles where MainTiles says so
 	for(int i = 0; i < m_Width*m_Height; ++i)
 	{
-		if(grassLayer->m_aTiles[i].m_Index != AIR.m_Index)//Not air means it should be solid!
-			gamelayer->m_aTiles[i] = SOLID;
+		if(grassLayer->m_aTiles[i].m_Index != Tile::AIR)//Not air means it should be solid!
+			gamelayer->m_aTiles[i] = GenerateTile(Tile::SOLID);
 	}
 
 	//Place some junk in POIs
+	PlaceGameItems();
 
 	//Place Spawn points
+	PlaceSpawns();
+}
+
+void CMapGenerator::DoDoodadsLayer()
+{
+	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[2];
+	str_copy(Group->m_aName, "DoodadsTiles", sizeof(Group->m_aName));
+
+	CEditorMap2::CLayer* doodadsLayer = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[0]]);
+	doodadsLayer->m_ImageID = GRASS_DOODADS;
+
+	CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
+
+	//Automap
+    ((CDoodadsMapper*)m_pAutoMapperDoodads)->Proceed(doodadsLayer, 1, 50);
+
+    //Filter wrong grass
+    for(int y = 1; y < doodadsLayer->m_Height-1; ++y)
+    {
+    	for(int x= 1; x < doodadsLayer->m_Width-1; ++x)
+    	{
+    		if(doodadsLayer->m_aTiles[y*doodadsLayer->m_Width+x].m_Index != 0)
+    		{
+    			if(gamelayer->m_aTiles[(y+1)*doodadsLayer->m_Width+x+1].m_Index == Tile::AIR)
+    				doodadsLayer->m_aTiles[y*doodadsLayer->m_Width+x] = GenerateTile(16+11, TILEFLAG_VFLIP);
+    			if(gamelayer->m_aTiles[(y+1)*doodadsLayer->m_Width+x-1].m_Index == Tile::AIR)
+    				doodadsLayer->m_aTiles[y*doodadsLayer->m_Width+x].m_Index = 16+11;
+			}
+		}
+    }
 }
 
 void CMapGenerator::AddMapres()
 {
 	m_pEditor->AssetsAddAndLoadImage("grass_main.png");//GRASS_MAIN = 0
+	m_pEditor->AssetsAddAndLoadImage("grass_doodads.png");
 }
 
 void CMapGenerator::FillLayer(CEditorMap2::CLayer* layer, CTile Tile)
@@ -153,20 +191,21 @@ void CMapGenerator::FillLayer(CEditorMap2::CLayer* layer, CTile Tile)
 	}
 }
 
-void CMapGenerator::PunchHoles(CEditorMap2::CLayer* layer, float radius, int num)
+void CMapGenerator::PunchHoles(CEditorMap2::CLayer* layer, float radius, int num, bool UsePOI)
 {
 	for(int i = 0; i < num; ++i)
-		PunchHole(layer, radius);
+		PunchHole(layer, radius, UsePOI);
 }
 
-void CMapGenerator::PunchHole(CEditorMap2::CLayer* layer, float radius)
+void CMapGenerator::PunchHole(CEditorMap2::CLayer* layer, float radius, bool UsePOI)
 {
 	int rad = (int)std::ceil(radius);
-	int x = rand()%(512-2*rad);
-	int y = rand()%(512-2*rad);
-	for(int dx = -rad; dx < rad; ++dx)
+	int x = (rand()%(512-2*rad-4))+2;
+	int y = (rand()%(512-2*rad-4))+2;
+	CTile AIR = GenerateTile(Tile::AIR);
+	for(int dx = -rad; dx <= rad; ++dx)
 	{
-		for(int dy = -rad; dy < rad; ++dy)
+		for(int dy = -rad; dy <= rad; ++dy)
 		{
 			if(std::sqrt(dx*dx+dy*dy) < radius)
 				layer->m_aTiles[(y+rad+dy)*512+x+dx+rad] = AIR;
@@ -175,49 +214,62 @@ void CMapGenerator::PunchHole(CEditorMap2::CLayer* layer, float radius)
 
 	//Save Interesting points for gameing
 	//Middle
-	m_vPOI.emplace_back(vec2(x+rad, y+rad));
+	if(UsePOI)
+	{
+		m_vPOI.emplace_back(vec2(x+rad, y+rad));
 
-	//Circle 'Edges
-	m_vHorizontalEdges.emplace_back(vec2(x + rad ,	y));
-	m_vHorizontalEdges.emplace_back(vec2(x + rad ,	y + 2*rad-1));
-	m_vVerticalEdges.emplace_back(vec2(x, 			y + rad));
-	m_vVerticalEdges.emplace_back(vec2(x + 2*rad-1, y + rad));
+		//Circle 'Edges
+		m_vHorizontalTopEdges.emplace_back(		vec2(x + rad,			y + 1));
+		m_vHorizontalBottomEdges.emplace_back(	vec2(x + rad,			y + 2 * rad -1));
+		m_vVerticalEdges.emplace_back(			vec2(x + 1, 			y + rad));
+		m_vVerticalEdges.emplace_back(			vec2(x + 2 * rad - 1,	y + rad));
+	}
 }
 
-void CMapGenerator::PunchRectangles(CEditorMap2::CLayer* layer, int width, int height, int num)
+void CMapGenerator::PunchRectangles(CEditorMap2::CLayer* layer, int width, int height, int num, bool UsePOI)
 {
 	//int offset = m_vPOI.size();
 	//m_vPOI.resize(offset+num);
 	for(int i = 0; i < num; ++i)
-		PunchRectangle(layer, width, height);
+		PunchRectangle(layer, width, height, UsePOI);
 }
 
-void CMapGenerator::PunchRectangle(CEditorMap2::CLayer* layer, int width, int height)
+void CMapGenerator::PunchRectangle(CEditorMap2::CLayer* layer, int width, int height, bool UsePOI)
 {
-	int x = rand()%(512-width-2);
-	int y = rand()%(512-height-2);
-	for(int dx = -width/2; dx < width/2; ++dx)
+	if(width%2 == 1)
+		width-=1;
+	if(height%2 == 1)
+		height-=1;
+
+	int x = (rand()%(512-width-4))+2;
+	int y = (rand()%(512-height-4))+2;
+	CTile AIR = GenerateTile(Tile::AIR);
+
+	for(int dy = -height/2; dy <= height/2; ++dy)
 	{
-		for(int dy = -height/2; dy < height/2; ++dy)
+		for(int dx = -width/2; dx <= width/2; ++dx)
 		{
-			layer->m_aTiles[(y+height/2+1+dy)*512+x+dx+width/2+1] = AIR;
+			layer->m_aTiles[(y+height/2+dy)*512+x+dx+width/2] = AIR;
 		}
 	}
 	//Save interesting points for gaming
 	//Middle
-	m_vPOI.emplace_back(vec2(x+width/2, y+height/2));
+	if(UsePOI)
+	{
+		m_vPOI.emplace_back(vec2(x+width/2, y+height/2));
 
-	//Edges
-	m_vHorizontalEdges.emplace_back(vec2(x+width/2+1,y+1));
-	m_vHorizontalEdges.emplace_back(vec2(x+width/2+1,y+height));
-	m_vVerticalEdges.emplace_back(vec2(x+1,y+height/2+1));
-	m_vVerticalEdges.emplace_back(vec2(x+width,y+height/2+1));
+		//Edges
+		m_vHorizontalTopEdges.emplace_back(		vec2(x + width/2,	y));
+		m_vHorizontalBottomEdges.emplace_back(	vec2(x + width/2,	y + height));
+		m_vVerticalEdges.emplace_back(			vec2(x,				y + height/2));
+		m_vVerticalEdges.emplace_back(			vec2(x + width,		y + height/2));
 
-	//Corners
-	m_vCorners.emplace_back(vec2(x+1,y+1));
-	m_vCorners.emplace_back(vec2(x+width,y+height));
-	m_vCorners.emplace_back(vec2(x+width,y+1));
-	m_vCorners.emplace_back(vec2(x+1,y+height));
+		//Corners
+		m_vCorners.emplace_back(vec2(x,y));
+		m_vCorners.emplace_back(vec2(x + width, y + height));
+		m_vCorners.emplace_back(vec2(x + width,y));
+		m_vCorners.emplace_back(vec2(x, y + height));
+	}
 }
 
 /* badum tss */
@@ -294,17 +346,17 @@ void CMapGenerator::PunchRectangleAt(CEditorMap2::CLayer* layer, int x, int y, i
 	for(int offset = -length/2; offset < length/2; ++offset)
 	{
 		if(RectHorizontal)
-			SetAir(layer, x+offset, y);
+			SetTile(layer, x+offset, y);
 		else
-			SetAir(layer, x, y+offset);
+			SetTile(layer, x, y+offset);
 	}
 }
 
-void CMapGenerator::SetAir(CEditorMap2::CLayer* layer, int x, int y)
+void CMapGenerator::SetTile(CEditorMap2::CLayer* layer, int x, int y, int Index)
 {
 	if(x < 1 || x >= m_Width-1 || y < 1 || y >= m_Height-1)
 		return;
-	layer->m_aTiles[y*m_Height+x] = AIR;
+	layer->m_aTiles[y*m_Height+x] = GenerateTile(Index);
 }
 
 void CMapGenerator::ConnectMinimalSpanningTree(CEditorMap2::CLayer* layer)
@@ -341,7 +393,7 @@ void CMapGenerator::ConnectMinimalSpanningTree(CEditorMap2::CLayer* layer)
 
 		PunchLine(layer, graph[IndexGraph], *IndexPOI);
 		graph.push_back(*IndexPOI);
-		m_vPOI.erase(IndexPOI);
+		POI.erase(IndexPOI);
 	}
 }
 
@@ -405,4 +457,93 @@ void CMapGenerator::LoadAutomapperJson(const char* pFilename)
 
 	// clean up
 	json_value_free(pJsonData);
+}
+
+void CMapGenerator::PlaceGameItems()
+{
+	CTile GameTiles[8];//2Flag, Shield, Heart, Shotgun, Grenade, Ninja, Laser
+	for(int i = 0; i < 8; ++i)
+	{
+		GameTiles[i] = GenerateTile(192+3+i);//192 general offset, 3 spawn types 0;
+	}
+	CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
+
+	//Place 2 flags
+	for(int i = 0; i < 2; ++i)
+	{
+		int id = rand()%m_vHorizontalBottomEdges.size();
+
+		auto it = m_vHorizontalBottomEdges.begin();
+		std::advance(it, id);//Costly
+		gamelayer->m_aTiles[it->y*gamelayer->m_Height+it->x] = GameTiles[i];
+		m_vHorizontalBottomEdges.erase(it);
+	}
+
+	std::list<vec2> Horizontals;
+	Horizontals.insert(Horizontals.end(), m_vHorizontalTopEdges.begin(), m_vHorizontalTopEdges.end());
+	Horizontals.insert(Horizontals.end(), m_vHorizontalBottomEdges.begin(), m_vHorizontalBottomEdges.end());
+
+	for(auto it = Horizontals.begin(); it != Horizontals.end(); ++it)
+	{
+		int val = rand()%100;
+		if(val >= 90)
+		{
+			int gametile = rand()%6;
+			if(gametile == 4 && rand()%100 < 90)//Ninja is rare
+				continue;
+			gamelayer->m_aTiles[it->y*gamelayer->m_Height+it->x] = GameTiles[2+gametile];
+		}
+	}
+
+}
+
+void CMapGenerator::PlaceSpawns()
+{
+	auto CloseIndex = m_vPOI.begin();
+	double CloseDist = m_Width*m_Height;
+	for(auto it = m_vPOI.begin(); it != m_vPOI.end(); ++it)
+	{
+		double dist = distance(vec2(0, 0), *it);
+		if(dist < CloseDist)
+		{
+			CloseDist = dist;
+			CloseIndex = it;
+		}
+	}
+	CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
+	gamelayer->m_aTiles[CloseIndex->y*gamelayer->m_Height+CloseIndex->x] = GenerateTile(Tile::SPAWN_DEFAULT);
+}
+
+void CMapGenerator::DoBorderCorrection()
+{
+	CEditorMap2::CGroup* ForeGroundGroup = &m_pEditor->m_aGroups[4];
+	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[ForeGroundGroup->m_apLayerIDs[GRASS_MAIN]]);
+
+	CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
+
+	//Fix gamelayer borders
+	for(int i = 0; i < gamelayer->m_Width; ++i)
+	{
+		gamelayer->m_aTiles[i] = 												GenerateTile(Tile::SOLID);
+		gamelayer->m_aTiles[(gamelayer->m_Height-1)*gamelayer->m_Width+i] = 	GenerateTile(Tile::SOLID);
+	}
+
+	for(int i = 0; i < gamelayer->m_Height; ++i)
+	{
+		gamelayer->m_aTiles[(gamelayer->m_Width)*i] = 							GenerateTile(Tile::SOLID);
+		gamelayer->m_aTiles[(gamelayer->m_Width)*i+gamelayer->m_Width-1] = 		GenerateTile(Tile::SOLID);
+	}
+
+	//fix grasslayer replications
+	for(int i = 0; i < grassLayer->m_Width; ++i)
+	{
+		grassLayer->m_aTiles[i] = 												GenerateTile(1);
+		grassLayer->m_aTiles[(grassLayer->m_Height-1)*grassLayer->m_Width+i] = 	GenerateTile(1);
+	}
+
+	for(int i = 0; i < grassLayer->m_Height; ++i)
+	{
+		gamelayer->m_aTiles[(grassLayer->m_Width)*i] = 							GenerateTile(1);
+		gamelayer->m_aTiles[(grassLayer->m_Width)*i+grassLayer->m_Width-1] = 	GenerateTile(1);
+	}
 }

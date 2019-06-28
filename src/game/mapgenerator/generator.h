@@ -26,33 +26,49 @@ class CMapGenerator
 public:
 	CMapGenerator();
 	bool GenerateMap(IStorage* pStorage, IGraphics* pGraphics, IConsole* pConsole, const char* pFilename);
+	static CTile GenerateTile(int Index, int Flags=0, int Skip=0, int Padding=0);
+
 private:
 	enum
 	{
 		GRASS_MAIN=0,
+		GRASS_DOODADS,
+	};
+
+	enum Tile
+	{
+		AIR=0,
+		SOLID,
+		DEATH,
+		UNHOOK,
+		SPAWN_DEFAULT=192,
+		SPAWN_RED,
+		SPAWN_BLUE,
 	};
 
 	void DoBackground();
 	void DoForeground();
 	void DoGameLayer();
+	void DoDoodadsLayer();
+	void DoBorderCorrection();
+
 
 	void AddMapres();
 	void FillLayer(CEditorMap2::CLayer* layer, CTile Tile);
-	CTile GenerateTile(int Index, int Flags=0, int Skip=0, int Padding=0);
 
 	//Puncher
-	void PunchHoles(CEditorMap2::CLayer* layer, float radius, int num);
-	void PunchHole(CEditorMap2::CLayer* layer, float radius);
+	void PunchHoles(CEditorMap2::CLayer* layer, float radius, int num, bool UsePOI = false);
+	void PunchHole(CEditorMap2::CLayer* layer, float radius, bool UsePOI = false);
 
-	void PunchRectangles(CEditorMap2::CLayer* layer, int width, int height, int num);
-	void PunchRectangle(CEditorMap2::CLayer* layer, int width, int height);
+	void PunchRectangles(CEditorMap2::CLayer* layer, int width, int height, int num, bool UsePOI = false);
+	void PunchRectangle(CEditorMap2::CLayer* layer, int width, int height, bool UsePOI = false);
 	void PunchRectangleAt(CEditorMap2::CLayer* layer, int x, int y, int length, bool RectHorizontal);
 
 	void PunchLine(CEditorMap2::CLayer* layer, const vec2& p1, const vec2& p2);
 	void PunchBresenham(CEditorMap2::CLayer* layer, int x1, int y1, int x2, int y2, bool RectHorizontal);
 
 	//PunchTile?
-	void SetAir(CEditorMap2::CLayer* layer, int x, int y);
+	void SetTile(CEditorMap2::CLayer* layer, int x, int y, int Index=0);
 
 	//Connector
 	void ConnectMinimalSpanningTree(CEditorMap2::CLayer* layer);
@@ -61,6 +77,9 @@ private:
 	void LoadAutomapperJson(const char* pFilename);
 	void LoadAutomapperFiles();
 
+	//GameLayer
+	void PlaceGameItems();
+	void PlaceSpawns();
 
 	CEditorMap2* m_pEditor;
 	IConsole* m_pConsole;
@@ -80,11 +99,9 @@ private:
 
 	std::list<vec2> m_vPOI;//more performance
 	std::list<vec2> m_vCorners;
-	std::list<vec2> m_vHorizontalEdges;
+	std::list<vec2> m_vHorizontalTopEdges;
+	std::list<vec2> m_vHorizontalBottomEdges;
 	std::list<vec2> m_vVerticalEdges;
-
-	CTile AIR;
-	CTile SOLID;
 };
 
 #endif

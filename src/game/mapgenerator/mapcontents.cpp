@@ -523,8 +523,19 @@ void CEditorMap2::LoadDefault()
 	/*CLayer& Gamelayer =*/ NewTileLayer(512, 512);
 
 	MgGroup.m_apLayerIDs[MgGroup.m_LayerCount++] = m_aLayers.size()-1;
-
 	m_aGroups.add(MgGroup);
+
+	//Add Doodads Ground
+	CGroup DoGroup;
+	DoGroup.m_OffsetX = 0;
+	DoGroup.m_OffsetY = 0;
+	DoGroup.m_ParallaxX = 100;
+	DoGroup.m_ParallaxY = 100;
+
+	/*CLayer& Gamelayer =*/ NewTileLayer(512, 512);
+
+	DoGroup.m_apLayerIDs[DoGroup.m_LayerCount++] = m_aLayers.size()-1;
+	m_aGroups.add(DoGroup);
 
 	//Add gamelayer
 	CGroup GameGroup;
