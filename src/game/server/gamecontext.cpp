@@ -1482,7 +1482,7 @@ void CGameContext::OnInit()
 
 
 	// select gametype
-	m_pController = new CGameControllerDM(this);
+	m_pController = new CGameControllerCTF(this);
 	/*if(str_comp_nocase(g_Config.m_SvGametype, "mod") == 0)
 
 	else if(str_comp_nocase(g_Config.m_SvGametype, "ctf") == 0)
