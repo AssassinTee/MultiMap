@@ -1,0 +1,40 @@
+{"doodads": [
+    {"vegetation":
+        {
+            "rules": [
+            {
+                "startid": 6,
+                "endid": 47,
+                "ry": -3,
+                "location": "floor",
+                "random": 20
+            },
+            {
+                "startid": 56,
+                "endid": 75,
+                "ry": -2,
+                "location": "floor",
+                "random": 10
+            },
+            {
+                "startid": 54,
+                "endid": 87,
+                "ry": -1,
+                "location": "walls",
+                "random": 10
+            }]
+        }
+    },
+    {"grass":
+        {
+            "rules": [
+            {
+                "startid": 113,
+                "endid": 113,
+                "ry": -1,
+                "location": "floor",
+                "random": 1
+            }]
+        }
+    }]
+}
