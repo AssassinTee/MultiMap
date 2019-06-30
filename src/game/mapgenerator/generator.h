@@ -25,7 +25,7 @@ class CMapGenerator
 {
 public:
 	CMapGenerator();
-	bool GenerateMap(IStorage* pStorage, IGraphics* pGraphics, IConsole* pConsole, const char* pFilename);
+	bool GenerateMap(IStorage* pStorage, IGraphics* pGraphics, IConsole* pConsole, const char* pFilename, const char* pType);
 	static CTile GenerateTile(int Index, int Flags=0, int Skip=0, int Padding=0);
 
 private:
@@ -46,14 +46,23 @@ private:
 		SPAWN_BLUE,
 	};
 
+	enum Group
+	{
+		BG_SKY=0,
+		BG_TILE,
+		BG_DOODADS,
+		GAME_LAYER,
+		FG_TILE
+	};
+
 	void DoBackground();
 	void DoForeground();
 	void DoGameLayer();
-	void DoDoodadsLayer();
+	void DoDoodadsLayer(const char* pType);
 	void DoBorderCorrection();
 
 
-	void AddMapres();
+	void AddMapres(const char* pType);
 	void FillLayer(CEditorMap2::CLayer* layer, CTile Tile);
 
 	//Puncher
@@ -75,11 +84,15 @@ private:
 
 	//AutoMapper
 	void LoadAutomapperJson(const char* pFilename);
-	void LoadAutomapperFiles();
+	void LoadAutomapperFiles(const char* pType=0);
 
 	//GameLayer
 	void PlaceGameItems();
 	void PlaceSpawns();
+
+	//Corrections
+	void DoGrassDoodads();
+	void DoJungleDoodads();
 
 	//More corrections
 	void CleanLayer(CEditorMap2::CLayer* layer, int Solid);

@@ -1438,6 +1438,10 @@ int CServer::Run()
 		dbg_msg("server", "+-------------------------+");
 	}
 
+	// Init JobPool for mapgen
+	m_pJobPool = new CJobPool();
+	m_pJobPool->Init(4);
+
 	// start game
 	{
 		int64 ReportTime = time_get();
@@ -1547,6 +1551,10 @@ int CServer::Run()
 		if(m_vMapData[i].m_pCurrentMapData)
 			mem_free(m_vMapData[i].m_pCurrentMapData);
 	}
+
+	//Clean up
+	delete m_pJobPool;
+
 	return 0;
 }
 
@@ -1572,11 +1580,39 @@ void CServer::ChangeClientMap(int ClientID)
 	GameServer()->OnInitMap(m_aClients[ClientID].m_NextMapID);
 }
 
-void CServer::GenerateMap(const char* filename)
+struct CMapGenData
 {
+	CServer* m_pServer;
+	IKernel* m_pKernel;
+	char filename[64];
+	char type[64];
+};
+
+static int LoadGenMapThread(void *pUser)
+{
+	CMapGenData* pData = (CMapGenData*)pUser;
+
 	CMapGenerator generator;
+	if(generator.GenerateMap(pData->m_pServer->Storage(), pData->m_pKernel->RequestInterface<IGraphics>(), pData->m_pServer->Console(), pData->filename, pData->type))
+		return 1;
+	return 0;
+}
+
+void CServer::GenerateMap(const char* filename, const char* pType)
+{
+	//TODO Do it in a JOAB
+	CMapGenData data;
+	data.m_pServer = this;
+	data.m_pKernel = Kernel();
+	str_copy(data.type, pType, sizeof(data.type));
+	str_copy(data.filename, filename, sizeof(data.filename));
+	CJob MapJob;
+	//IEngine* pEngine = Kernel()->RequestInterface<IEngine>();
+
+	m_pJobPool->Add(&MapJob, LoadGenMapThread, &data);
+
 	char aBuf[256];
-	if(generator.GenerateMap(Storage(), Kernel()->RequestInterface<IGraphics>(), Console(), filename))
+	if(true)
 	{
 		str_format(aBuf, sizeof(aBuf), "Map '%s' generated successfully!", filename);
 		Console()->Print(IConsole::OUTPUT_LEVEL_STANDARD, "mapgen", aBuf);
@@ -1802,7 +1838,10 @@ void CServer::ConLogout(IConsole::IResult *pResult, void *pUser)
 void CServer::ConGenerateMap(IConsole::IResult *pResult, void *pUser)
 {
 	CServer *pServer = (CServer *)pUser;
-	pServer->GenerateMap(pResult->GetString(0));
+	if(pResult->NumArguments() == 1)
+		pServer->GenerateMap(pResult->GetString(0));
+	else if(pResult->NumArguments() == 2)
+		pServer->GenerateMap(pResult->GetString(0), pResult->GetString(1));
 }
 
 void CServer::ConchainSpecialInfoupdate(IConsole::IResult *pResult, void *pUserData, IConsole::FCommandCallback pfnCallback, void *pCallbackUserData)
@@ -1888,7 +1927,7 @@ void CServer::RegisterCommands()
 
 	Console()->Register("set_map_by_mapid", "i?i", CFGFLAG_SERVER, ConSetMapByID, this, "Set <mapid> [<playerid>]");
 	Console()->Register("set_map_by_mapname", "s?i", CFGFLAG_SERVER, ConSetMapByName, this, "Set <mapname> [<playerid>]");
-	Console()->Register("gen_map", "s", CFGFLAG_SERVER, ConGenerateMap, this, "Generate <mapname> TODO: enter some metadata");
+	Console()->Register("gen_map", "s?s", CFGFLAG_SERVER, ConGenerateMap, this, "Generate <mapname> [<type>] TODO: enter some metadata");
 
 	Console()->Chain("sv_name", ConchainSpecialInfoupdate, this);
 	Console()->Chain("password", ConchainSpecialInfoupdate, this);
@@ -1964,6 +2003,7 @@ int main(int argc, const char **argv) // ignore_convention
 	// create the components
 	int FlagMask = CFGFLAG_SERVER|CFGFLAG_ECON;
 	IEngine *pEngine = CreateEngine("Teeworlds");
+
 	//IEngineMap *pEngineMap = CreateEngineMap();
 	IGameServer *pGameServer = CreateGameServer();
 	IConsole *pConsole = CreateConsole(CFGFLAG_SERVER|CFGFLAG_ECON);

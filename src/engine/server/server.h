@@ -65,6 +65,7 @@ class CServer : public IServer
 	class IGameServer *m_pGameServer;
 	class IConsole *m_pConsole;
 	class IStorage *m_pStorage;
+	class CJobPool* m_pJobPool;
 public:
 	class IGameServer *GameServer() { return m_pGameServer; }
 	class IConsole *Console() { return m_pConsole; }
@@ -273,7 +274,7 @@ public:
 
 	const char *GetMapName(int MapID, char* aMapName) const;
 	int LoadMap(const char *pMapName);
-	void GenerateMap(const char* filename);
+	void GenerateMap(const char* filename, const char* pType=nullptr);
 
 	void InitRegister(CNetServer *pNetServer, IEngineMasterServer *pMasterServer, IConsole *pConsole);
 	int Run();
