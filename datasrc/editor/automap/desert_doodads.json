@@ -1,0 +1,184 @@
+{"doodads": [
+    {"vegetation":
+        {
+            "rules": [
+            {
+                "startid": 32,
+				"endid": 34,
+				"ry": -1,
+				"location": "floor",
+				"random": 30,
+				"comment": "smallfence"
+            },
+            {
+                "startid": 19,
+				"endid": 38,
+				"ry": -2,
+				"location": "floor",
+				"random": 30,
+				"comment": "cross middlefence"
+            },
+            {
+                "startid": 23,
+				"endid": 42,
+				"ry": -2,
+				"location": "floor",
+				"random": 30,
+				"comment": "middlefence"
+            },
+            {
+                "startid": 11,
+				"endid": 44,
+				"ry": -3,
+				"location": "floor",
+				"random": 50,
+				"comment": "bigfence EOF"
+            },
+            {
+                "startid": 48,
+				"endid": 66,
+				"ry": -2,
+				"location": "floor",
+				"random": 35,
+				"comment": "skull"
+            },
+            {
+                "startid": 96,
+				"endid": 98,
+				"ry": -1,
+				"location": "floor",
+				"random": 25
+            },
+            {
+                "startid": 99,
+				"endid": 100,
+				"ry": -1,
+				"location": "floor",
+				"random": 25
+            },
+            {
+                "startid": 101,
+				"endid": 101,
+				"ry": -1,
+				"location": "floor",
+				"random": 25
+            },
+            {
+                "startid": 86,
+				"endid": 103,
+				"ry": -2,
+				"location": "floor",
+				"random": 25,
+				"comment": "END OF SAND"
+            },
+            {
+                "startid": 88,
+				"endid": 106,
+				"ry": -2,
+				"location": "floor",
+				"random": 30
+            },
+            {
+                "startid": 91,
+				"endid": 108,
+				"ry": -2,
+				"location": "floor",
+				"random": 30,
+				"comment": "END OF STONES"
+            },
+            {
+                "startid": 77,
+				"endid": 111,
+				"ry": -3,
+				"location": "floor",
+				"random": 30,
+				"comment": "campfire"
+            },
+            {
+                "startid": 148,
+				"endid": 148,
+				"ry": -1,
+				"location": "floor",
+				"random": 35
+            },
+            {
+                "startid": 164,
+				"endid": 164,
+				"ry": -1,
+				"location": "floor",
+				"random": 35
+            },
+            {
+                "startid": 180,
+				"endid": 180,
+				"ry": -1,
+				"location": "floor",
+				"random": 35,
+				"comment": "END OF GRASS"
+            },
+            {
+                "startid": 149,
+				"endid": 182,
+				"ry": -3,
+				"location": "floor",
+				"random": 30
+            },
+            {
+                "startid": 167,
+				"endid": 184,
+				"ry": -2,
+				"location": "floor",
+				"random": 30
+            },
+            {
+                "startid": 169,
+				"endid": 185,
+				"ry": -2,
+				"location": "floor",
+				"random": 30
+            },
+            {
+                "startid": 170,
+				"endid": 186,
+				"ry": -2,
+				"location": "floor",
+				"random": 30
+            },
+            {
+                "startid": 139,
+				"endid": 188,
+				"ry": -4,
+				"location": "floor",
+				"random": 30
+            },
+            {
+                "startid": 157,
+				"endid": 191,
+				"ry": -3,
+				"location": "floor",
+				"random": 30,
+				"comment": "END OF CACTUS"
+            },
+            {
+                "startid": 221,
+				"endid": 255,
+				"ry": -1,
+				"location": "ceiling",
+				"random": 50,
+				"comment": "ceiling cable"
+            }]
+        }
+    },
+    {"smallfence":
+        {
+            "rules": [
+			{
+				"startid": 33,
+				"endid": 33,
+				"ry": -1,
+				"location": "floor",
+				"random": 1
+			}]
+        }
+    }]
+}

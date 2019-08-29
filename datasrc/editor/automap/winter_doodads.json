@@ -1,0 +1,191 @@
+{"doodads": [
+    {"winter":
+        {
+            "rules": [
+            {
+                "startid": 0,
+                "endid": 82,
+                "ry": -6,
+                "location": "floor",
+                "random": 35,
+                "comment": "BIG CHRISTMAS TREE"
+            },
+            {
+                "startid": 19,
+                "endid": 53,
+                "ry": -3,
+                "location": "floor",
+                "random": 20,
+                "comment": "SMALL CHRISTMAS TREE"
+            },
+            {
+                "startid": 6,
+                "endid": 88,
+                "ry": -6,
+                "location": "floor",
+                "random": 20,
+                "comment": "BIG ROUND TREE"
+            },
+            {
+                "startid": 9,
+                "endid": 75,
+                "ry": -5,
+                "location": "floor",
+                "random": 20,
+                "comment": "SMALL ROUND TREE"
+            },
+            {
+                "startid": 12,
+                "endid": 78,
+                "ry": -5,
+                "location": "floor",
+                "random": 20,
+                "comment": "MIDDLE ROUND TREE"
+            },
+            {
+                "startid": 63,
+                "endid": 79,
+                "ry": -2,
+                "location": "floor",
+                "random": 40,
+                "comment": "BLUE FLAG"
+            },
+            {
+                "startid": 95,
+                "endid": 111,
+                "ry": -2,
+                "location": "floor",
+                "random": 40,
+                "comment": "RED FLAG"
+            },
+            {
+                "startid": 89,
+                "endid": 107,
+                "ry": -2,
+                "location": "floor",
+                "random": 35,
+                "comment": "RED SLED"
+            },
+            {
+                "startid": 92,
+                "endid": 110,
+                "ry": -2,
+                "location": "floor",
+                "random": 35,
+                "comment": "BLUE SLED"
+            },
+            {
+                "startid": 96,
+                "endid": 149,
+                "ry": -4,
+                "location": "floor",
+                "random": 50,
+                "comment": "TEEGLO"
+            },
+            {
+                "startid": 102,
+                "endid": 152,
+                "ry": -4,
+                "location": "floor",
+                "random": 35,
+                "comment": "SNOWTEE"
+            },
+            {
+                "startid": 125,
+                "endid": 125,
+                "ry": -1,
+                "location": "floor",
+                "random": 30,
+                "comment": "6 SNOWBALLS"
+            },
+            {
+                "startid": 126,
+                "endid": 126,
+                "ry": -1,
+                "location": "floor",
+                "random": 30,
+                "comment": "4 SNOWBALLS"
+            },
+            {
+                "startid": 127,
+                "endid": 127,
+                "ry": -1,
+                "location": "floor",
+                "random": 30,
+                "comment": "2 SNOWBALLS"
+            },
+            {
+                "startid": 141,
+                "endid": 141,
+                "ry": -1,
+                "location": "floor",
+                "random": 30,
+                "comment": "1 SNOWBALL"
+            },
+            {
+                "startid": 153,
+                "endid": 253,
+                "ry": -7,
+                "location": "floor",
+                "random": 50,
+                "comment": "TEE STATUE"
+            },
+            {
+                "startid": 168,
+                "endid": 200,
+                "ry": -3,
+                "location": "floor",
+                "random": 40,
+                "comment": "RED BIRD HOUSE"
+            },
+            {
+                "startid": 216,
+                "endid": 248,
+                "ry": -3,
+                "location": "floor",
+                "random": 40,
+                "comment": "BLUE BIRD HOUSE"
+            },
+            {
+                "startid": 206,
+                "endid": 255,
+                "ry": -4,
+                "location": "floor",
+                "random": 35,
+                "comment": "LAMP SNOW LAMP"
+            },
+            {
+                "startid": 160,
+                "endid": 183,
+                "ry": -1,
+                "location": "ceiling",
+                "random": 15,
+                "comment": "BIG RED LIGHTBULBS"
+            },
+            {
+                "startid": 192,
+                "endid": 215,
+                "ry": -1,
+                "location": "ceiling",
+                "random": 15,
+                "comment": "BIG BLUE LIGHTBULBS"
+            },
+            {
+                "startid": 224,
+                "endid": 243,
+                "ry": -1,
+                "location": "ceiling",
+                "random": 20,
+                "comment": "SMALL RED LIGHTBULBS"
+            },
+            {
+                "startid": 228,
+                "endid": 247,
+                "ry": -1,
+                "location": "ceiling",
+                "random": 20,
+                "comment": "SMALL BLUE LIGHTBULBS"
+            }]
+        }
+    }]
+}

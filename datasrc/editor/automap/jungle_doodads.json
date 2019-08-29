@@ -3,37 +3,199 @@
         {
             "rules": [
             {
-                "startid": 6,
-                "endid": 47,
-                "ry": -3,
+                "startid": 0,
+                "endid": 65,
+                "ry": -5,
+                "location": "floor",
+                "random": 40
+            },
+            {
+                "startid": 2,
+                "endid": 67,
+                "ry": -5,
+                "location": "floor",
+                "random": 40
+            },
+            {
+                "startid": 20,
+                "endid": 69,
+                "ry": -4,
+                "location": "floor",
+                "random": 40,
+                "comment": "END OF TALL GRASS"
+            },
+            {
+                "startid": 80,
+                "endid": 97,
+                "ry": -2,
+                "location": "floor",
+                "random": 25
+            },
+            {
+                "startid": 82,
+                "endid": 99,
+                "ry": -2,
+                "location": "floor",
+                "random": 25
+            },
+            {
+                "startid": 84,
+                "endid": 100,
+                "ry": -2,
+                "location": "floor",
+                "random": 25,
+                "comment": "END OF CIRCLE GRASS"
+            },
+            {
+                "startid": 144,
+                "endid": 161,
+                "ry": -2,
                 "location": "floor",
                 "random": 20
             },
+            {
+                "startid": 146,
+                "endid": 163,
+                "ry": -2,
+                "location": "floor",
+                "random": 20
+            },
+            {
+                "startid": 148,
+                "endid": 165,
+                "ry": -2,
+                "location": "floor",
+                "random": 20,
+                "comment": "END OF BIG LEAF GRASS"
+            },
+            {
+                "startid": 150,
+                "endid": 167,
+                "ry": -2,
+                "location": "floor",
+                "random": 15,
+                "comment": "Grass stone"
+            },
+            {
+                "startid": 89,
+                "endid": 171,
+                "ry": -6,
+                "location": "floor",
+                "random": 45,
+                "comment": "Bird statue full"
+            },
+            {
+                "startid": 76,
+                "endid": 175,
+                "ry": -7,
+                "location": "floor",
+                "random": 45,
+                "comment": "Tee statue full"
+            },
+            {
+                "startid": 76,
+                "endid": 127,
+                "ry": -4,
+                "location": "floor",
+                "random": 40,
+                "comment": "Tee statue"
+            },
+            {
+                "startid": 136,
+                "endid": 171,
+                "ry": -3,
+                "location": "floor",
+                "random": 40,
+                "comment": "block statue bird"
+            },
+            {
+                "startid": 140,
+                "endid": 175,
+                "ry": -3,
+                "location": "floor",
+                "random": 40,
+                "comment": "block statue tee"
+            },
+            {
+                "startid": 176,
+                "endid": 245,
+                "ry": -5,
+                "location": "floor",
+                "random": 50,
+                "comment": "Wood house"
+            },
+            {
+                "startid": 231,
+                "endid": 250,
+                "ry": -2,
+                "location": "floor",
+                "random": 50,
+                "comment": "Treasure"
+            },
+            {
+                "startid": 203,
+                "endid": 221,
+                "ry": -1,
+                "location": "ceiling",
+                "random": 15
+            },
+            {
+                "startid": 206,
+                "endid": 254,
+                "ry": -1,
+                "location": "ceiling",
+                "random": 20
+            },
+            {
+                "startid": 207,
+                "endid": 255,
+                "ry": -1,
+                "location": "ceiling",
+                "random": 20,
+                "comment": "END OF LIANA"
+            }]
+        }
+    },
+    {"bushes":
+        {
+            "rules":[
             {
                 "startid": 56,
                 "endid": 75,
                 "ry": -2,
                 "location": "floor",
-                "random": 10
+                "random": 20
+            },
+            {
+                "startid": 6,
+                "endid": 46,
+                "ry": -3,
+                "location": "floor",
+                "random": 2
+            },
+            {
+                "startid": 60,
+                "endid": 61,
+                "ry": -1,
+                "location": "floor",
+                "random": 40,
+                "comment": "BUSH DEAD TEE"
+            },
+            {
+                "startid": 62,
+                "endid": 63,
+                "ry": -1,
+                "location": "floor",
+                "random": 20,
+                "comment": "END OF BUSHES FLOOR"
             },
             {
                 "startid": 54,
                 "endid": 87,
                 "ry": -1,
                 "location": "walls",
-                "random": 10
-            }]
-        }
-    },
-    {"grass":
-        {
-            "rules": [
-            {
-                "startid": 113,
-                "endid": 113,
-                "ry": -1,
-                "location": "floor",
-                "random": 1
+                "random": 20,
+                "comment": "END OF BUSHES WALLS"
             }]
         }
     }]

@@ -71,7 +71,6 @@ class CTilesetMapper: public IAutoMapper
 		int m_VFlip;
 		int m_Random;
 		int m_Rotation;
-
 		array<CRuleCondition> m_aConditions;
 	};
 
@@ -109,6 +108,8 @@ public:
 
 		int m_HFlip;
 		int m_VFlip;
+
+		int m_Bottom;
 
 		enum
 		{

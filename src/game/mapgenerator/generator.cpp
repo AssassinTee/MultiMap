@@ -17,10 +17,11 @@ bool CMapGenerator::GenerateMap(IStorage* pStorage, IGraphics* pGraphics, IConso
 
 	m_pEditor = new CEditorMap2;
 	m_pEditor->Init(pStorage, pGraphics, pConsole);
-	m_pEditor->LoadDefault();
+	m_pEditor->LoadDefault(pType);
 
 	m_pAutoMapperTiles = new CTilesetMapper(m_pEditor);
 	m_pAutoMapperDoodads = new CDoodadsMapper(m_pEditor);
+	m_pAutoMapperTiles2 = new CTilesetMapper(m_pEditor);
 	LoadAutomapperFiles(pType);
 
 	AddMapres(pType);
@@ -28,7 +29,12 @@ bool CMapGenerator::GenerateMap(IStorage* pStorage, IGraphics* pGraphics, IConso
 	str_format(aBuf, sizeof(aBuf), "Starting background");
 	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "genmap", aBuf);
 
-	DoBackground();
+	DoBackground(pType);
+
+	str_format(aBuf, sizeof(aBuf), "Starting midground");
+	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "genmap", aBuf);
+
+	DoMidground(pType);
 
 	str_format(aBuf, sizeof(aBuf), "Starting foreground");
 	m_pConsole->Print(IConsole::OUTPUT_LEVEL_STANDARD, "genmap", aBuf);
@@ -57,28 +63,83 @@ bool CMapGenerator::GenerateMap(IStorage* pStorage, IGraphics* pGraphics, IConso
 	delete m_pEditor;
 	delete m_pAutoMapperTiles;
 	delete m_pAutoMapperDoodads;
+	delete m_pAutoMapperTiles2;
 
 	m_pEditor = 0;
 	m_pAutoMapperTiles = 0;
 	m_pAutoMapperDoodads = 0;
+	m_pAutoMapperTiles2 = 0;
 	return ret;
 }
 
-void CMapGenerator::DoBackground()
+void CMapGenerator::DoBackground(const char* pType)
 {
-	CEditorMap2::CGroup* Group = &(m_pEditor->m_aGroups[BG_TILE]);
-	str_copy(Group->m_aName, "BackTiles", sizeof(Group->m_aName));
+	if(str_comp(pType, "jungle") == 0)
+	{
+		CEditorMap2::CGroup* Group = &(m_pEditor->m_aGroups[BG_TILE]);
+		str_copy(Group->m_aName, "BackTiles", sizeof(Group->m_aName));
 
-	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[GRASS_MAIN]]);
-	grassLayer->m_ImageID = GRASS_MAIN;
+		CEditorMap2::CLayer* layer = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[0]]);
+		layer->m_ImageID = 2;
+		layer->m_Color.r = 100.0f/255;
+		layer->m_Color.g = 160.0f/255;
+		layer->m_Color.b = 60.0f/255;
+
+		FillLayer(layer, GenerateTile(35));
+		for(float r = 1.0f; r <= 6.0f; r+=0.5f)
+			PunchHoles(layer, r, 400);
+		CleanLayer(layer, 1);
+
+		RECTi Area;
+		Area.h = layer->m_Height-2;
+		Area.w = layer->m_Width-2;
+		Area.x = 1;
+		Area.y = 1;
+		m_pAutoMapperTiles2->Proceed(layer, 0, Area);//Small leaf config
+
+		CEditorMap2::CGroup* Group2 = &(m_pEditor->m_aGroups[BG_TILE_2]);
+		str_copy(Group2->m_aName, "BackTiles2", sizeof(Group2->m_aName));
+
+		layer = &(m_pEditor->m_aLayers[Group2->m_apLayerIDs[0]]);
+		layer->m_ImageID = 2;
+		layer->m_Color.r = 60.0f/255;
+		layer->m_Color.g = 105.0f/255;
+		layer->m_Color.b = 30.0f/255;
+
+		FillLayer(layer, GenerateTile(35));
+		for(float r = 1.0f; r <= 6.0f; r+=0.5f)
+			PunchHoles(layer, r, 400);
+		CleanLayer(layer, 1);
+
+		m_pAutoMapperTiles2->Proceed(layer, 1, Area);//Big leaf config
+	}
+}
+
+void CMapGenerator::DoMidground(const char* pType)
+{
+	CEditorMap2::CGroup* Group = &(m_pEditor->m_aGroups[MG_TILE]);
+	str_copy(Group->m_aName, "MidTiles", sizeof(Group->m_aName));
+
+	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[0]]);
+	grassLayer->m_ImageID = 0;
 
 	//Fill All with cavetiles
-	FillLayer(grassLayer, GenerateTile(13));
+	FillLayer(grassLayer, GenerateTile(13));//TODO don't hardcode the 13
 
 	//Punch some holes in it
-	for(int r = 15; r >= 7; --r)
+	if(str_comp(pType, "jungle") == 0)
 	{
-		PunchHoles(grassLayer, r, 10);
+		for(float r = 15.0f; r >= 7.0f; r-=0.5f)
+		{
+			PunchHoles(grassLayer, r, 10);
+		}
+	}
+	else
+	{
+		for(int r = 15; r >= 7; --r)
+		{
+			PunchHoles(grassLayer, r, 10);
+		}
 	}
 
 	//Get Rid of useless blocks
@@ -100,8 +161,8 @@ void CMapGenerator::DoForeground()
 	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[FG_TILE];
 	str_copy(Group->m_aName, "MainTiles", sizeof(Group->m_aName));
 
-	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[GRASS_MAIN]]);
-	grassLayer->m_ImageID = GRASS_MAIN;
+	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[0]]);
+	grassLayer->m_ImageID = 0;
 
 	//Fill all with grasstiles
 	FillLayer(grassLayer, GenerateTile(Tile::SOLID));
@@ -142,7 +203,7 @@ void CMapGenerator::DoGameLayer()
 {
 	//CEditorMap2::CGroup* GameGroup = &m_pEditor->m_aGroups[GAME_LAYER];
 	CEditorMap2::CGroup* ForeGroundGroup = &m_pEditor->m_aGroups[FG_TILE];
-	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[ForeGroundGroup->m_apLayerIDs[GRASS_MAIN]]);
+	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[ForeGroundGroup->m_apLayerIDs[0]]);
 
 	CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
 
@@ -162,11 +223,15 @@ void CMapGenerator::DoGameLayer()
 
 void CMapGenerator::DoDoodadsLayer(const char* pType)
 {
-	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[BG_DOODADS];
+	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[MG_DOODADS];
 	str_copy(Group->m_aName, "DoodadsTiles", sizeof(Group->m_aName));
 
 	if(str_comp(pType, "jungle") == 0)
     	DoJungleDoodads();
+	else if(str_comp(pType, "desert") == 0)
+		DoDesertDoodads();
+	else if(str_comp(pType, "winter") == 0)
+		DoWinterDoodads();
 	else
 		DoGrassDoodads();
 }
@@ -176,17 +241,18 @@ void CMapGenerator::AddMapres(const char* pType)
 	if(str_comp(pType, "desert") == 0)
 	{
 		m_pEditor->AssetsAddAndLoadImage("desert_main.png");
-		m_pEditor->AssetsAddAndLoadImage("grass_doodads.png");
+		m_pEditor->AssetsAddAndLoadImage("desert_doodads.png");
 	}
 	else if(str_comp(pType, "jungle") == 0)
 	{
 		m_pEditor->AssetsAddAndLoadImage("jungle_main.png");
 		m_pEditor->AssetsAddAndLoadImage("jungle_doodads.png");
+		m_pEditor->AssetsAddAndLoadImage("jungle_midground.png");
 	}
 	else if(str_comp(pType, "winter") == 0)
 	{
 		m_pEditor->AssetsAddAndLoadImage("winter_main.png");
-		m_pEditor->AssetsAddAndLoadImage("grass_doodads.png");
+		m_pEditor->AssetsAddAndLoadImage("winter_doodads.png");
 	}
 	else
 	{
@@ -364,9 +430,11 @@ void CMapGenerator::PunchRectangleAt(CEditorMap2::CLayer* layer, int x, int y, i
 	}
 }
 
-void CMapGenerator::SetTile(CEditorMap2::CLayer* layer, int x, int y, int Index)
+void CMapGenerator::SetTile(CEditorMap2::CLayer* layer, int x, int y, int Index, bool OnlyAir)
 {
 	if(x < 1 || x >= m_Width-1 || y < 1 || y >= m_Height-1)
+		return;
+	if(OnlyAir && layer->m_aTiles[y*m_Height+x].m_Index != AIR)
 		return;
 	layer->m_aTiles[y*m_Height+x] = GenerateTile(Index);
 }
@@ -423,27 +491,28 @@ void CMapGenerator::LoadAutomapperFiles(const char* pType)
 {
 	if(str_comp(pType, "desert")==0)
 	{
-		LoadAutomapperJson("desert_main");
-		LoadAutomapperJson("grass_doodads");
+		LoadAutomapperJson("desert_main", m_pAutoMapperTiles);
+		LoadAutomapperJson("desert_doodads", m_pAutoMapperDoodads);
 	}
 	else if(str_comp(pType, "jungle")==0)
 	{
-		LoadAutomapperJson("jungle_main");
-		LoadAutomapperJson("jungle_doodads");
+		LoadAutomapperJson("jungle_main", m_pAutoMapperTiles);
+		LoadAutomapperJson("jungle_doodads", m_pAutoMapperDoodads);
+		LoadAutomapperJson("jungle_midground", m_pAutoMapperTiles2);
 	}
 	else if(str_comp(pType, "winter")==0)
 	{
-		LoadAutomapperJson("winter_main");
-		LoadAutomapperJson("grass_doodads");
+		LoadAutomapperJson("winter_main", m_pAutoMapperTiles);
+		LoadAutomapperJson("winter_doodads", m_pAutoMapperDoodads);
 	}
 	else
 	{
-		LoadAutomapperJson("grass_main");
-		LoadAutomapperJson("grass_doodads");
+		LoadAutomapperJson("grass_main", m_pAutoMapperTiles);
+		LoadAutomapperJson("grass_doodads", m_pAutoMapperDoodads);
 	}
 }
 
-void CMapGenerator::LoadAutomapperJson(const char* pFilename)
+void CMapGenerator::LoadAutomapperJson(const char* pFilename, IAutoMapper* pAutomapper)
 {
 	// read file data into buffer
 	char aBuf[256];
@@ -479,14 +548,14 @@ void CMapGenerator::LoadAutomapperJson(const char* pFilename)
 	const json_value &rTileset = (*pJsonData)[(const char *)IAutoMapper::GetTypeName(IAutoMapper::TYPE_TILESET)];
 	if(rTileset.type == json_array)
 	{
-		m_pAutoMapperTiles->Load(rTileset);
+		pAutomapper->Load(rTileset);
 	}
 	else
 	{
 		const json_value &rDoodads = (*pJsonData)[(const char *)IAutoMapper::GetTypeName(IAutoMapper::TYPE_DOODADS)];
 		if(rDoodads.type == json_array)
 		{
-			m_pAutoMapperDoodads->Load(rDoodads);
+			pAutomapper->Load(rDoodads);
 		}
 		else
 		{
@@ -528,13 +597,83 @@ void CMapGenerator::PlaceGameItems()
 		int val = rand()%100;
 		if(val >= 90)
 		{
+			//don't place stuff in air
+			if(gamelayer->m_aTiles[(it->y+1)*gamelayer->m_Height+it->x].m_Index == AIR && gamelayer->m_aTiles[(it->y-1)*gamelayer->m_Height+it->x].m_Index == AIR)
+				continue;
+
 			int gametile = rand()%6;
 			if(gametile == 4 && rand()%100 < 90)//Ninja is rare
 				continue;
-			gamelayer->m_aTiles[it->y*gamelayer->m_Height+it->x] = GameTiles[2+gametile];
+			if(gametile < 2)//Shields and hearts
+			{
+				for(int x = -2; x <= 2; ++x)
+				{
+					int Index = it->y*gamelayer->m_Height+it->x+x;
+					if(Index <= 0 || Index >= gamelayer->m_Height*m_Width-1)
+						continue;
+					if(gamelayer->m_aTiles[Index].m_Index == AIR)
+						gamelayer->m_aTiles[Index].m_Index = gametile+192+5;
+
+				}
+			}
+			else
+			{
+				gamelayer->m_aTiles[it->y*gamelayer->m_Height+it->x].m_Index = gametile+192+5;
+			}
 		}
 	}
 
+	for(auto it = m_vVerticalEdges.begin(); it != m_vVerticalEdges.end(); ++it)
+	{
+		int val = rand()%100;
+		if(val >= 90)
+		{
+			//don't place stuff in air
+			if(gamelayer->m_aTiles[(it->y)*gamelayer->m_Height+it->x+1].m_Index == AIR && gamelayer->m_aTiles[(it->y)*gamelayer->m_Height+it->x-1].m_Index == AIR)
+				continue;
+
+			int gametile = rand()%6;
+			if(gametile == 4 && rand()%100 < 90)//Ninja is rare
+				continue;
+			if(gametile < 2)//Shields and hearts
+			{
+				for(int y = -2; y <= 2; ++y)
+				{
+					int Index = (it->y+y)*gamelayer->m_Height+it->x;
+					if(Index <= 0 || Index >= gamelayer->m_Height*m_Width-1)
+						continue;
+					if(gamelayer->m_aTiles[Index].m_Index == AIR)
+						gamelayer->m_aTiles[Index].m_Index = gametile+192+5;
+				}
+			}
+			else
+			{
+				gamelayer->m_aTiles[it->y*gamelayer->m_Height+it->x].m_Index = gametile+192+5;
+			}
+		}
+	}
+
+	for(auto it = m_vCorners.begin(); it != m_vCorners.end(); ++it)
+	{
+		//check cross
+		int counter = 0;
+		counter += gamelayer->m_aTiles[(it->y)*gamelayer->m_Height+it->x].m_Index != 0;//Mid
+		counter += gamelayer->m_aTiles[(it->y)*gamelayer->m_Height+it->x+1].m_Index != 0;//Right
+		counter += gamelayer->m_aTiles[(it->y)*gamelayer->m_Height+it->x-1].m_Index != 0;//Left
+		counter += gamelayer->m_aTiles[(it->y-1)*gamelayer->m_Height+it->x].m_Index != 0;//Top
+		counter += gamelayer->m_aTiles[(it->y+1)*gamelayer->m_Height+it->x].m_Index != 0;//Down
+		if(counter < 2)//something cut into this corner, at least 3 of the tiles should be air
+			continue;
+		int val = rand()%100;
+		if(val < 90)
+			continue;
+		int gametile = (rand())%2+192+5;
+		SetTile(gamelayer, it->x, it->y, gametile, true);
+		SetTile(gamelayer, it->x+1, it->y, gametile, true);
+		SetTile(gamelayer, it->x-1, it->y, gametile, true);
+		SetTile(gamelayer, it->x, it->y-1, gametile, true);
+		SetTile(gamelayer, it->x, it->y+1, gametile, true);
+	}
 }
 
 void CMapGenerator::PlaceSpawns()
@@ -557,7 +696,7 @@ void CMapGenerator::PlaceSpawns()
 void CMapGenerator::DoBorderCorrection()
 {
 	CEditorMap2::CGroup* ForeGroundGroup = &m_pEditor->m_aGroups[4];
-	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[ForeGroundGroup->m_apLayerIDs[GRASS_MAIN]]);
+	CEditorMap2::CLayer* grassLayer = &(m_pEditor->m_aLayers[ForeGroundGroup->m_apLayerIDs[0]]);
 
 	CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
 
@@ -679,12 +818,12 @@ void CMapGenerator::CleanLayer(CEditorMap2::CLayer* layer, int Solid)
 
 void CMapGenerator::DoGrassDoodads()
 {
-	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[2];
+	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[MG_DOODADS];
 
 	CEditorMap2::CLayer* doodadsLayer1 = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[0]]);
 	CEditorMap2::CLayer* doodadsLayer2 = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[1]]);
-	doodadsLayer1->m_ImageID = GRASS_DOODADS;
-	doodadsLayer2->m_ImageID = GRASS_DOODADS;
+	doodadsLayer1->m_ImageID = 1;
+	doodadsLayer2->m_ImageID = 1;
 
 	CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
 
@@ -720,7 +859,7 @@ void CMapGenerator::DoGrassDoodads()
 
 void CMapGenerator::DoJungleDoodads()
 {
-	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[BG_DOODADS];
+	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[MG_DOODADS];
 
 	CEditorMap2::CLayer* doodadsLayer1 = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[0]]);
 	CEditorMap2::CLayer* doodadsLayer2 = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[1]]);
@@ -734,7 +873,7 @@ void CMapGenerator::DoJungleDoodads()
     ((CDoodadsMapper*)m_pAutoMapperDoodads)->Proceed(doodadsLayer2, 0, 50);
 
     //Filter wrong grass
-    for(int y = 1; y < doodadsLayer1->m_Height-1; ++y)
+    /*for(int y = 1; y < doodadsLayer1->m_Height-1; ++y)
     {
     	for(int x= 1; x < doodadsLayer1->m_Width-1; ++x)
     	{
@@ -760,7 +899,39 @@ void CMapGenerator::DoJungleDoodads()
 				if((gamelayer->m_aTiles[(y+1)*doodadsLayer2->m_Width+x+1].m_Index == Tile::AIR || gamelayer->m_aTiles[(y+1)*doodadsLayer2->m_Width+x-1].m_Index == Tile::AIR)
 					&& (gamelayer->m_aTiles[(y+1)*doodadsLayer2->m_Width+x].m_Index == Tile::SOLID || gamelayer->m_aTiles[(y+1)*doodadsLayer2->m_Width+x].m_Index == Tile::UNHOOK))
     				doodadsLayer2->m_aTiles[(y+1)*doodadsLayer2->m_Width+x] = GenerateTile(doodadsLayer2->m_aTiles[y*doodadsLayer2->m_Width+x].m_Index, TILEFLAG_HFLIP);
-			}*/
+			}
 		}
-    }
+    }*/
+}
+
+void CMapGenerator::DoDesertDoodads()
+{
+	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[MG_DOODADS];
+
+	//CEditorMap2::CLayer* doodadsLayer1 = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[0]]);
+	CEditorMap2::CLayer* doodadsLayer2 = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[1]]);
+	//doodadsLayer1->m_ImageID = 1;
+	doodadsLayer2->m_ImageID = 1;
+
+	//CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
+
+	//Automap
+    //((CDoodadsMapper*)m_pAutoMapperDoodads)->Proceed(doodadsLayer1, 1, 50);
+    ((CDoodadsMapper*)m_pAutoMapperDoodads)->Proceed(doodadsLayer2, 0, 50);
+}
+
+void CMapGenerator::DoWinterDoodads()
+{
+	CEditorMap2::CGroup* Group = &m_pEditor->m_aGroups[MG_DOODADS];
+
+	//CEditorMap2::CLayer* doodadsLayer1 = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[0]]);
+	CEditorMap2::CLayer* doodadsLayer2 = &(m_pEditor->m_aLayers[Group->m_apLayerIDs[1]]);
+	//doodadsLayer1->m_ImageID = 1;
+	doodadsLayer2->m_ImageID = 1;
+
+	//CEditorMap2::CLayer* gamelayer = &(m_pEditor->m_aLayers[m_pEditor->m_GameLayerID]);
+
+	//Automap
+    //((CDoodadsMapper*)m_pAutoMapperDoodads)->Proceed(doodadsLayer1, 1, 50);
+    ((CDoodadsMapper*)m_pAutoMapperDoodads)->Proceed(doodadsLayer2, 0, 50);
 }

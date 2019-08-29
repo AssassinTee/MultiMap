@@ -278,6 +278,13 @@ void CDoodadsMapper::Load(const json_value &rElement)
 					NewRule.m_Location = CRule::WALLS;
 			}
 
+			// add bottom
+			const json_value &rBot = rRuleNode[j]["bottom"];
+			if(rBot.type == json_integer)
+				NewRule.m_Bottom = clamp((int)rBot.u.integer, 0, 1);
+			else
+				NewRule.m_Bottom = 1;
+
 			NewRuleSet.m_aRules.add(NewRule);
 		}
 
@@ -326,6 +333,8 @@ void CDoodadsMapper::AnalyzeGameLayer()
 		for(int x = 1; x < pLayer->m_Width-1; x++)
 		{
 			CTile *pTile = &(pLayer->m_aTiles[y*pLayer->m_Width+x]);
+			CTile *pTileLeft = &(pLayer->m_aTiles[y*pLayer->m_Width+(x-1)]);
+			CTile *pTileRight = &(pLayer->m_aTiles[y*pLayer->m_Width+(x+1)]);
 
 			// empty, skip
 			if(pTile->m_Index == 0)
@@ -339,7 +348,7 @@ void CDoodadsMapper::AnalyzeGameLayer()
 			int CheckIndex = (y-1)*pLayer->m_Width+x;
 
 			// add a floor part
-			if(pTile->m_Index == 1 && (pLayer->m_aTiles[CheckIndex].m_Index == 0 || pLayer->m_aTiles[CheckIndex].m_Index > ENTITY_OFFSET))
+			if(pTile->m_Index == 1 && pTileLeft->m_Index == 1 && pTileRight->m_Index == 1 && (pLayer->m_aTiles[CheckIndex].m_Index == 0 || pLayer->m_aTiles[CheckIndex].m_Index > ENTITY_OFFSET))
 			{
 				// create an new chain
 				if(!FloorKeepChaining)
@@ -538,6 +547,20 @@ void CDoodadsMapper::PlaceDoodads(CEditorMap2::CLayer *pLayer, CRule *pRule, arr
 			ID += pRule->m_RelativePos.x;
 			ID += pRule->m_RelativePos.y*pLayer->m_Width;
 
+			// check if collision occures
+			for(int y = 0; y < pRule->m_Size.y; y++)
+				for(int x = 0; x < pRule->m_Size.x; x++)
+				{
+					int Index = y*pLayer->m_Width+x+ID;
+					if(Index <= 0 || Index >= MaxIndex)
+						continue;
+
+					if(pLayer->m_aTiles[Index].m_Index != 0)
+					{
+						goto collision_detected;//break for both loops
+					}
+				}
+
 			for(int y = 0; y < pRule->m_Size.y; y++)
 				for(int x = 0; x < pRule->m_Size.x; x++)
 				{
@@ -548,6 +571,57 @@ void CDoodadsMapper::PlaceDoodads(CEditorMap2::CLayer *pLayer, CRule *pRule, arr
 					pLayer->m_aTiles[Index].m_Index = pRule->m_Rect.x+y*16+x;
 				}
 
+			// add bottom flipped
+			if(pRule->m_Bottom)
+			{
+
+				if(pRule->m_Location == CRule::FLOOR)
+				{
+					for(int x = 0; x < pRule->m_Size.x; x++)
+					{
+						int Index = (pRule->m_Size.y)*pLayer->m_Width+x+ID;
+						if(Index <= 0 || Index >= MaxIndex)
+							continue;
+
+						if(!pLayer->m_aTiles[Index].m_Index)
+						{
+							pLayer->m_aTiles[Index].m_Index = pRule->m_Rect.x+(pRule->m_Size.y-1)*16+x;
+							pLayer->m_aTiles[Index].m_Flags ^= TILEFLAG_HFLIP;
+						}
+					}
+				}
+				else if(pRule->m_Location == CRule::CEILING)
+				{
+					for(int x = 0; x < pRule->m_Size.x; x++)
+					{
+						int Index = (-1)*pLayer->m_Width+x+ID;
+						if(Index <= 0 || Index >= MaxIndex)
+							continue;
+
+						if(!pLayer->m_aTiles[Index].m_Index)
+						{
+							pLayer->m_aTiles[Index].m_Index = pRule->m_Rect.x+x;
+							pLayer->m_aTiles[Index].m_Flags ^= TILEFLAG_HFLIP;
+						}
+					}
+				}
+				else//Wall
+				{
+					for(int y = 0; y < pRule->m_Size.y; y++)
+					{
+						int Index = y*pLayer->m_Width+(!LeftWall ? -1 : pRule->m_Size.x)+ID;
+						if(Index <= 0 || Index >= MaxIndex)
+							continue;
+
+						if(!pLayer->m_aTiles[Index].m_Index)
+						{
+							pLayer->m_aTiles[Index].m_Index = pRule->m_Rect.x+y*16;
+							if(!LeftWall)
+								pLayer->m_aTiles[Index].m_Flags ^= TILEFLAG_VFLIP;
+						}
+					}
+				}
+			}
 			// hflip
 			if(pRule->m_HFlip)
 			{
@@ -636,6 +710,7 @@ void CDoodadsMapper::PlaceDoodads(CEditorMap2::CLayer *pLayer, CRule *pRule, arr
 				if(aChainAfter.size() > 1)
 					pPositions->add(aChainAfter);
 			}
+			collision_detected:{}
 		}
 }
 

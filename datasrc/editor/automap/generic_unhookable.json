@@ -1,0 +1,14 @@
+{"doodads": [
+    {"vegetation":
+        {
+            "rules": [
+            {
+                "startid": 6,
+                "endid:": 47,
+                "ry": -3,
+                "location": "floor",
+                "random": 50
+            }]
+        }
+    }]
+}

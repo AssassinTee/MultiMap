@@ -29,12 +29,6 @@ public:
 	static CTile GenerateTile(int Index, int Flags=0, int Skip=0, int Padding=0);
 
 private:
-	enum
-	{
-		GRASS_MAIN=0,
-		GRASS_DOODADS,
-	};
-
 	enum Tile
 	{
 		AIR=0,
@@ -50,12 +44,15 @@ private:
 	{
 		BG_SKY=0,
 		BG_TILE,
-		BG_DOODADS,
+		BG_TILE_2,
+		MG_TILE,
+		MG_DOODADS,
 		GAME_LAYER,
 		FG_TILE
 	};
 
-	void DoBackground();
+	void DoBackground(const char* pType);
+	void DoMidground(const char* pType);
 	void DoForeground();
 	void DoGameLayer();
 	void DoDoodadsLayer(const char* pType);
@@ -77,13 +74,13 @@ private:
 	void PunchBresenham(CEditorMap2::CLayer* layer, int x1, int y1, int x2, int y2, bool RectHorizontal);
 
 	//PunchTile?
-	void SetTile(CEditorMap2::CLayer* layer, int x, int y, int Index=0);
+	void SetTile(CEditorMap2::CLayer* layer, int x, int y, int Index=0, bool OnlyAir=false);
 
 	//Connector
 	void ConnectMinimalSpanningTree(CEditorMap2::CLayer* layer);
 
 	//AutoMapper
-	void LoadAutomapperJson(const char* pFilename);
+	void LoadAutomapperJson(const char* pFilename, IAutoMapper* pAutomapper);
 	void LoadAutomapperFiles(const char* pType=0);
 
 	//GameLayer
@@ -93,6 +90,8 @@ private:
 	//Corrections
 	void DoGrassDoodads();
 	void DoJungleDoodads();
+	void DoDesertDoodads();
+	void DoWinterDoodads();
 
 	//More corrections
 	void CleanLayer(CEditorMap2::CLayer* layer, int Solid);
@@ -100,6 +99,7 @@ private:
 	CEditorMap2* m_pEditor;
 	IConsole* m_pConsole;
 	IAutoMapper* m_pAutoMapperTiles;
+	IAutoMapper* m_pAutoMapperTiles2;
 	IAutoMapper* m_pAutoMapperDoodads;
 
 	struct AUTOMAP_RULES

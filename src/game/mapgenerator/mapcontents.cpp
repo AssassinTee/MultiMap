@@ -476,7 +476,7 @@ bool CEditorMap2::Save(const char* pFileName)
 	return true;
 }*/
 
-void CEditorMap2::LoadDefault()
+void CEditorMap2::LoadDefault(const char* pType)
 {
 	Clear();
 
@@ -499,12 +499,43 @@ void CEditorMap2::LoadDefault()
 	SkyQuad.m_aPoints[0].y = SkyQuad.m_aPoints[1].y = -Height;
 	SkyQuad.m_aPoints[2].y = SkyQuad.m_aPoints[3].y = Height;
 	SkyQuad.m_aPoints[4].x = SkyQuad.m_aPoints[4].y = 0;
-	SkyQuad.m_aColors[0].r = SkyQuad.m_aColors[1].r = 94;
-	SkyQuad.m_aColors[0].g = SkyQuad.m_aColors[1].g = 132;
-	SkyQuad.m_aColors[0].b = SkyQuad.m_aColors[1].b = 174;
-	SkyQuad.m_aColors[2].r = SkyQuad.m_aColors[3].r = 204;
-	SkyQuad.m_aColors[2].g = SkyQuad.m_aColors[3].g = 232;
-	SkyQuad.m_aColors[2].b = SkyQuad.m_aColors[3].b = 255;
+
+	if(str_comp(pType, "winter") == 0)
+	{
+		SkyQuad.m_aColors[0].r = SkyQuad.m_aColors[1].r = 2;
+		SkyQuad.m_aColors[0].g = SkyQuad.m_aColors[1].g = 20;
+		SkyQuad.m_aColors[0].b = SkyQuad.m_aColors[1].b = 31;
+		SkyQuad.m_aColors[2].r = SkyQuad.m_aColors[3].r = 8;
+		SkyQuad.m_aColors[2].g = SkyQuad.m_aColors[3].g = 76;
+		SkyQuad.m_aColors[2].b = SkyQuad.m_aColors[3].b = 118;
+	}
+	else if(str_comp(pType, "desert") == 0)
+	{
+		SkyQuad.m_aColors[0].r = SkyQuad.m_aColors[1].r = 84;
+		SkyQuad.m_aColors[0].g = SkyQuad.m_aColors[1].g = 93;
+		SkyQuad.m_aColors[0].b = SkyQuad.m_aColors[1].b = 109;
+		SkyQuad.m_aColors[2].r = SkyQuad.m_aColors[3].r = 220;
+		SkyQuad.m_aColors[2].g = SkyQuad.m_aColors[3].g = 165;
+		SkyQuad.m_aColors[2].b = SkyQuad.m_aColors[3].b = 135;
+	}
+	else if(str_comp(pType, "jungle") == 0)
+	{
+		SkyQuad.m_aColors[0].r = SkyQuad.m_aColors[1].r = 116;
+		SkyQuad.m_aColors[0].g = SkyQuad.m_aColors[1].g = 215;
+		SkyQuad.m_aColors[0].b = SkyQuad.m_aColors[1].b = 115;
+		SkyQuad.m_aColors[2].r = SkyQuad.m_aColors[3].r = 195;
+		SkyQuad.m_aColors[2].g = SkyQuad.m_aColors[3].g = 255;
+		SkyQuad.m_aColors[2].b = SkyQuad.m_aColors[3].b = 185;
+	}
+	else
+	{
+		SkyQuad.m_aColors[0].r = SkyQuad.m_aColors[1].r = 94;
+		SkyQuad.m_aColors[0].g = SkyQuad.m_aColors[1].g = 132;
+		SkyQuad.m_aColors[0].b = SkyQuad.m_aColors[1].b = 174;
+		SkyQuad.m_aColors[2].r = SkyQuad.m_aColors[3].r = 204;
+		SkyQuad.m_aColors[2].g = SkyQuad.m_aColors[3].g = 232;
+		SkyQuad.m_aColors[2].b = SkyQuad.m_aColors[3].b = 255;
+	}
 	SkyQuad.m_aColors[0].a = SkyQuad.m_aColors[1].a = 255;
 	SkyQuad.m_aColors[2].a = SkyQuad.m_aColors[3].a = 255;
 	BgQuadLayer.m_aQuads.add(SkyQuad);
@@ -512,11 +543,34 @@ void CEditorMap2::LoadDefault()
 	BgGroup.m_apLayerIDs[BgGroup.m_LayerCount++] = m_aLayers.size()-1;
 	m_aGroups.add(BgGroup);
 
+	//Add BG2 Ground
+	CGroup BgGroup2;
+	BgGroup2.m_OffsetX = 1100;
+	BgGroup2.m_OffsetY = 1100;
+	BgGroup2.m_ParallaxX = 70;
+	BgGroup2.m_ParallaxY = 70;
+
+	/*CLayer& Gamelayer =*/ NewTileLayer(512, 512);
+
+	BgGroup2.m_apLayerIDs[BgGroup2.m_LayerCount++] = m_aLayers.size()-1;
+	m_aGroups.add(BgGroup2);
+
+	//Add BG3 Ground
+	CGroup BgGroup3;
+	BgGroup3.m_OffsetX = 1000;
+	BgGroup3.m_OffsetY = 1000;
+	BgGroup3.m_ParallaxX = 80;
+	BgGroup3.m_ParallaxY = 80;
+
+	/*CLayer& Gamelayer =*/ NewTileLayer(512, 512);
+
+	BgGroup3.m_apLayerIDs[BgGroup3.m_LayerCount++] = m_aLayers.size()-1;
+	m_aGroups.add(BgGroup3);
 
 	//Add Middle Ground
 	CGroup MgGroup;
-	MgGroup.m_OffsetX = 0;
-	MgGroup.m_OffsetY = 0;
+	MgGroup.m_OffsetX = 900;
+	MgGroup.m_OffsetY = 900;
 	MgGroup.m_ParallaxX = 90;
 	MgGroup.m_ParallaxY = 90;
 

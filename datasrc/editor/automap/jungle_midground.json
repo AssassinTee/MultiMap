@@ -1,0 +1,208 @@
+{"tileset":[
+    {"leafssmall":
+        {
+            "basetile": 35,
+            "rules": [
+            {
+                "index": 200,
+                "condition": [
+                    {"x": 0, "y": -1, "value": "empty"}
+                ]
+            },
+            {
+                "index": 200,
+                "rotate": 180,
+                "condition": [
+                    {"x": 0, "y": 1, "value": "empty"}
+                ]
+            },
+            {
+                "index": 200,
+                "rotate": 270,
+                "condition": [
+                    {"x": -1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 200,
+                "rotate": 90,
+                "condition": [
+                    {"x": 1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 199,
+                "condition": [
+                    {"x": 0, "y": -1, "value": "empty"},
+                    {"x": 1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 199,
+                "rotate": 270,
+                "condition": [
+                    {"x": 0, "y": -1, "value": "empty"},
+                    {"x": -1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 199,
+                "rotate": 90,
+                "condition": [
+                    {"x": 0, "y": 1, "value": "empty"},
+                    {"x": 1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 199,
+                "rotate": 180,
+                "condition": [
+                    {"x": 0, "y": 1, "value": "empty"},
+                    {"x": -1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 215,
+                "condition": [
+                    {"x": 1, "y": -1, "value": "empty"},
+                    {"x": 0, "y": -1, "value": "full"},
+                    {"x": 1, "y": 0, "value": "full"},
+                ],
+                "random": 2,
+            },
+            {
+                "index": 215,
+                "rotate": 270,
+                "condition": [
+                    {"x": -1, "y": -1, "value": "empty"},
+                    {"x": 0, "y": -1, "value": "full"},
+                    {"x": -1, "y": 0, "value": "full"},
+                ],
+                "random": 2
+            },
+            {
+                "index": 215,
+                "rotate": 90,
+                "condition": [
+                    {"x": 1, "y": 1, "value": "empty"},
+                    {"x": 0, "y": 1, "value": "full"},
+                    {"x": 1, "y": 0, "value": "full"}
+                ],
+                "random": 2
+            },
+            {
+                "index": 215,
+                "rotate": 180,
+                "condition": [
+                    {"x": -1, "y": 1, "value": "empty"},
+                    {"x": 0, "y": 1, "value": "full"},
+                    {"x": -1, "y": 0, "value": "full"}
+                ],
+                "random": 2
+            }]
+        }
+    },
+    {"leafsbig":
+        {
+            "basetile": 35,
+            "rules": [
+            {
+                "index": 110,
+                "condition": [
+                    {"x": 0, "y": -1, "value": "empty"}
+                ]
+            },
+            {
+                "index": 110,
+                "rotate": 180,
+                "condition": [
+                    {"x": 0, "y": 1, "value": "empty"}
+                ]
+            },
+            {
+                "index": 110,
+                "rotate": 270,
+                "condition": [
+                    {"x": -1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 110,
+                "rotate": 90,
+                "condition": [
+                    {"x": 1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 125,
+                "condition": [
+                    {"x": 0, "y": -1, "value": "empty"},
+                    {"x": 1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 125,
+                "rotate": 270,
+                "condition": [
+                    {"x": 0, "y": -1, "value": "empty"},
+                    {"x": -1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 125,
+                "rotate": 90,
+                "condition": [
+                    {"x": 0, "y": 1, "value": "empty"},
+                    {"x": 1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 125,
+                "rotate": 180,
+                "condition": [
+                    {"x": 0, "y": 1, "value": "empty"},
+                    {"x": -1, "y": 0, "value": "empty"}
+                ]
+            },
+            {
+                "index": 109,
+                "condition": [
+                    {"x": 1, "y": -1, "value": "empty"},
+                    {"x": 0, "y": -1, "value": "full"},
+                    {"x": 1, "y": 0, "value": "full"},
+                ],
+                "random": 2,
+            },
+            {
+                "index": 109,
+                "rotate": 270,
+                "condition": [
+                    {"x": -1, "y": -1, "value": "empty"},
+                    {"x": 0, "y": -1, "value": "full"},
+                    {"x": -1, "y": 0, "value": "full"},
+                ],
+                "random": 2
+            },
+            {
+                "index": 109,
+                "rotate": 90,
+                "condition": [
+                    {"x": 1, "y": 1, "value": "empty"},
+                    {"x": 0, "y": 1, "value": "full"},
+                    {"x": 1, "y": 0, "value": "full"}
+                ],
+                "random": 2
+            },
+            {
+                "index": 109,
+                "rotate": 180,
+                "condition": [
+                    {"x": -1, "y": 1, "value": "empty"},
+                    {"x": 0, "y": 1, "value": "full"},
+                    {"x": -1, "y": 0, "value": "full"}
+                ],
+                "random": 2
+            }]
+        }
+    }]
+}
